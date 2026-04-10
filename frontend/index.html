@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Forecasting Platform</title>
+  <meta name="description" content="Predict Rossmann store sales using machine learning. Enter store details and get instant sales forecasts." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">📈</span>
+          <span class="logo-text">SalesForecast</span>
+        </div>
+        <nav class="nav">
+          <a href="#predict" class="nav-link active" data-tab="predict">Predict</a>
+          <a href="#batch" class="nav-link" data-tab="batch">Batch Upload</a>
+          <a href="#model" class="nav-link" data-tab="model">Model Info</a>
+        </nav>
+        <div id="api-status" class="status-badge status-checking">Connecting…</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="container">
+
+      <!-- Hero -->
+      <section class="hero">
+        <h1>Store Sales Forecasting</h1>
+        <p>Enter store details below to get an instant sales prediction powered by XGBoost.</p>
+      </section>
+
+      <!-- Tabs -->
+      <div class="tabs">
+
+        <!-- ── Predict Tab ── -->
+        <section id="tab-predict" class="tab-content active">
+          <div class="card">
+            <h2 class="card-title">Single Store Prediction</h2>
+
+            <form id="predict-form" novalidate>
+              <div class="form-grid">
+
+                <div class="form-group">
+                  <label for="store">Store ID <span class="required">*</span></label>
+                  <input type="number" id="store" name="Store" min="1" max="1115" value="1" required />
+                  <span class="hint">1 – 1115</span>
+                </div>
+
+                <div class="form-group">
+                  <label for="date">Date <span class="required">*</span></label>
+                  <input type="date" id="date" name="Date" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="day-of-week">Day of Week</label>
+                  <select id="day-of-week" name="DayOfWeek">
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="7">Sunday</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="store-type">Store Type</label>
+                  <select id="store-type" name="StoreType">
+                    <option value="a">a</option>
+                    <option value="b">b</option>
+                    <option value="c">c</option>
+                    <option value="d">d</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="assortment">Assortment</label>
+                  <select id="assortment" name="Assortment">
+                    <option value="a">a – Basic</option>
+                    <option value="b">b – Extra</option>
+                    <option value="c">c – Extended</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="competition-distance">Competition Distance (m)</label>
+                  <input type="number" id="competition-distance" name="CompetitionDistance" min="0" value="500" step="0.1" />
+                </div>
+
+                <div class="form-group">
+                  <label for="state-holiday">State Holiday</label>
+                  <select id="state-holiday" name="StateHoliday">
+                    <option value="0">None</option>
+                    <option value="a">a – Public Holiday</option>
+                    <option value="b">b – Easter</option>
+                    <option value="c">c – Christmas</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Options</label>
+                  <div class="checkbox-group">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="promo" name="Promo" value="1" checked />
+                      Running Promo
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="promo2" name="Promo2" value="1" />
+                      Promo2 Active
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="school-holiday" name="SchoolHoliday" value="1" />
+                      School Holiday
+                    </label>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="predict-btn">
+                  <span class="btn-text">Get Prediction</span>
+                  <span class="btn-spinner hidden">…</span>
+                </button>
+                <button type="reset" class="btn btn-secondary">Reset</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Result card -->
+          <div id="result-card" class="card result-card hidden">
+            <h2 class="card-title">Prediction Result</h2>
+            <div class="result-body">
+              <div class="result-main">
+                <span class="result-label">Predicted Sales</span>
+                <span class="result-value" id="result-value">—</span>
+                <span class="result-currency">EUR</span>
+              </div>
+              <div class="result-meta">
+                <div class="meta-item">
+                  <span class="meta-label">Store</span>
+                  <span class="meta-value" id="result-store">—</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Date</span>
+                  <span class="meta-value" id="result-date">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error card -->
+          <div id="error-card" class="card error-card hidden">
+            <p id="error-msg">Something went wrong.</p>
+          </div>
+        </section>
+
+        <!-- ── Batch Upload Tab ── -->
+        <section id="tab-batch" class="tab-content">
+          <div class="card">
+            <h2 class="card-title">Batch CSV Upload</h2>
+            <p class="card-desc">Upload a CSV file with multiple store records to get predictions in bulk.</p>
+
+            <div class="upload-area" id="upload-area">
+              <input type="file" id="csv-file" accept=".csv" class="file-input" />
+              <div class="upload-icon">📂</div>
+              <p>Drag & drop a CSV file here, or <label for="csv-file" class="upload-link">browse</label></p>
+              <p class="hint">Max 50 MB · CSV only</p>
+            </div>
+
+            <div id="file-info" class="file-info hidden">
+              <span id="file-name"></span>
+              <button class="remove-file" id="remove-file">✕</button>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" id="upload-btn" disabled>Upload & Predict</button>
+              <button class="btn btn-secondary" id="template-btn">Download Template</button>
+            </div>
+          </div>
+
+          <div id="batch-result" class="card hidden">
+            <h2 class="card-title">Batch Results</h2>
+            <div class="batch-stats" id="batch-stats"></div>
+            <div class="table-wrapper">
+              <table class="results-table" id="results-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Store</th>
+                    <th>Date</th>
+                    <th>Predicted Sales (EUR)</th>
+                  </tr>
+                </thead>
+                <tbody id="results-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Model Info Tab ── -->
+        <section id="tab-model" class="tab-content">
+          <div class="card" id="model-info-card">
+            <h2 class="card-title">Model Information</h2>
+            <p class="card-desc">Details about the trained XGBoost model.</p>
+            <div id="model-info-body">
+              <div class="loading-state">Loading model info…</div>
+            </div>
+          </div>
+
+          <div class="card" id="features-card">
+            <h2 class="card-title">Feature List</h2>
+            <div id="features-body">
+              <div class="loading-state">Loading features…</div>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /tabs -->
+    </div><!-- /container -->
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Sales Forecasting Platform · Rossmann Stores Dataset · XGBoost Model</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
