@@ -1,0 +1,23 @@
+{
+  "name": "sales-forecasting-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Sales Forecasting Platform",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sales",
+    "forecasting",
+    "frontend"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {}
+}

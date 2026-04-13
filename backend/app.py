@@ -22,6 +22,10 @@ app.register_blueprint(insights_bp)
 def index():
     return send_from_directory(FRONTEND_DIR, 'index.html')
 
+@app.route("/")
+def home():
+    return "Backend is running "
+
 
 @app.route('/health', methods=['GET'])
 def health_check():
