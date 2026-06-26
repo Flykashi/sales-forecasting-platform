@@ -22,6 +22,7 @@ env/
 ml/notebooks/data/raw/*.csv
 ml/notebooks/data/processed/*.csv
 uploads/
+backend/records.db
 
 # OS
 .DS_Store

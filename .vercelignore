@@ -1,0 +1,15 @@
+# Ignore Vercel build artifacts and local-only files
+.git
+.gitignore
+Dockerfile
+backend/Dockerfile
+backend/records.db
+uploads/
+ml/notebooks/
+ml/data/
+ml/README.md
+docs/
+README.md
+INTERVIEW_PREP.md
+routes/
+services/
