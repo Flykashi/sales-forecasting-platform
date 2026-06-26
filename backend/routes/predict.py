@@ -1,8 +1,27 @@
+from datetime import datetime
+
 from flask import Blueprint, request, jsonify
+from db import insert_record
 from services.model_loader import get_model, get_columns
 from services.preprocess import preprocess, prepare_dataframe, inverse_transform_prediction
 
 predict_bp = Blueprint('predict', __name__, url_prefix='/api')
+
+
+def _build_prediction_record(preprocessed, prediction, source):
+    return {
+        'source': source,
+        'store': int(preprocessed.get('Store', 0)) if preprocessed.get('Store') is not None else None,
+        'date': f"{int(preprocessed.get('Year'))}-{int(preprocessed.get('Month')):02d}-{int(preprocessed.get('Day')):02d}",
+        'Promo': preprocessed.get('Promo'),
+        'StateHoliday': preprocessed.get('StateHoliday'),
+        'StoreType': preprocessed.get('StoreType'),
+        'Assortment': preprocessed.get('Assortment'),
+        'CompetitionDistance': preprocessed.get('CompetitionDistance'),
+        'Promo2': preprocessed.get('Promo2'),
+        'prediction': round(prediction, 2),
+        'created_at': datetime.utcnow().isoformat()
+    }
 
 
 @predict_bp.route('/predict', methods=['POST'])
@@ -59,6 +78,11 @@ def _single_prediction(item, model, columns):
         pred = inverse_transform_prediction(pred_log)
         pred = max(0, pred)
 
+        try:
+            insert_record(_build_prediction_record(preprocessed, pred, source='api_predict'))
+        except Exception:
+            pass
+
         return jsonify({
             'success': True,
             'prediction': round(pred, 2),
@@ -81,6 +105,11 @@ def _batch_prediction(items, model, columns):
             pred_log = model.predict(df)[0]
             pred = inverse_transform_prediction(pred_log)
             pred = max(0, pred)
+
+            try:
+                insert_record(_build_prediction_record(preprocessed, pred, source='api_batch'))
+            except Exception:
+                pass
 
             predictions.append({
                 'index': idx,

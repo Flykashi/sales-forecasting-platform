@@ -3,6 +3,7 @@ from flask_cors import CORS
 from routes.predict import predict_bp
 from routes.upload import upload_bp
 from routes.insights import insights_bp
+from db import init_db
 import os
 
 # Point Flask's static folder at the frontend directory
@@ -16,6 +17,7 @@ app.register_blueprint(predict_bp)
 app.register_blueprint(upload_bp)
 app.register_blueprint(insights_bp)
 
+init_db() 
 
 # Serve the frontend
 @app.route('/')

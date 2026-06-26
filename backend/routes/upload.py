@@ -1,10 +1,36 @@
+from datetime import datetime
+
 from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
 import pandas as pd
 import os
+from db import insert_record
 from services.services import predict_batch
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/api')
+
+
+def _get_field(item, *keys):
+    for key in keys:
+        if key in item:
+            return item[key]
+    return None
+
+
+def _build_upload_record(item, prediction):
+    return {
+        'source': 'upload_predict',
+        'store': _get_field(item, 'Store', 'store'),
+        'date': _get_field(item, 'Date', 'date'),
+        'Promo': _get_field(item, 'Promo', 'promo'),
+        'StateHoliday': _get_field(item, 'StateHoliday', 'state_holiday'),
+        'StoreType': _get_field(item, 'StoreType', 'store_type'),
+        'Assortment': _get_field(item, 'Assortment', 'assortment'),
+        'CompetitionDistance': _get_field(item, 'CompetitionDistance', 'competition_distance'),
+        'Promo2': _get_field(item, 'Promo2', 'promo2'),
+        'prediction': round(prediction, 2),
+        'created_at': datetime.utcnow().isoformat()
+    }
 
 ALLOWED_EXTENSIONS = {'csv'}
 MAX_FILE_SIZE = 50 * 1024 * 1024
@@ -47,6 +73,16 @@ def upload_predict():
             result = predict_batch(batch_data)
             result['file'] = filename
             result['rows'] = len(batch_data)
+
+            if result.get('success') and 'predictions' in result:
+                for prediction in result['predictions']:
+                    try:
+                        idx = prediction.get('index')
+                        if idx is None or idx >= len(batch_data):
+                            continue
+                        insert_record(_build_upload_record(batch_data[idx], prediction.get('prediction', 0)))
+                    except Exception:
+                        pass
             
             return jsonify(result), (200 if result.get('success') else 400)
             
